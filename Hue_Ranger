@@ -1,0 +1,71 @@
+=======================================================================================================================================================
+										      Hue installation HDP using mysql centos 6.9			 
+=======================================================================================================================================================
+hue installation steps:
+
+yum install hue -y
+
+Make following changes on below file
+
+vi /etc/hue/conf/hue.ini
+
+32   secret_key=jFE93j;2[290-eiw.KEiwN2s3['d;/.q[eIW^y#e=+Iei*@Mn<qW5o
+334  fs_defaultfs=hdfs://master:8020
+339  webhdfs_url=http://master:50070/webhdfs/v1/
+350  submit_to=true
+358  resourcemanager_api_url=http://s1:8088
+364  proxy_api_url=http://s1:8088
+367  history_server_api_url=http://s1:19888
+370  app_timeline_server_api_url=http://s1:8188
+373  node_manager_api_url=http://s1:8042
+435  hive_server_host=s1
+438  hive_server_port=10000
+441  hive_conf_dir=/etc/hive/conf
+444  server_conn_timeout=120
+391  oozie_url=http://s1:11000/oozie
+
+
+GRANT ALL PRIVILEGES ON *.* TO 'hue'@'s1' IDENTIFIED BY 'hue';
+flush privileges;
+commit;
+
+sudo wget http://repo.mysql.com/mysql-community-release-el6-5.noarch.rpm
+
+sudo rpm -Uvh mysql-community-release-el6-5.noarch.rpm
+
+sudo yum -y install mysql mysql-server
+
+sudo chkconfig mysqld on
+sudo service mysqld start
+
+cd /usr/lib/hue
+source build/env/bin/activate
+hue syncdb --noinput
+hue migrate
+deactivate
+=======================================================================================================================================================
+										      Ranger installation HDP using mysql centos 6.9			 
+=======================================================================================================================================================
+Show databases;
+Create database ranger;
+Commit;
+Show databases;
+CREATE USER 'ranger'@'localhost' IDENTIFIED BY 'ranger';
+GRANT ALL PRIVILEGES ON *.* TO 'ranger'@'localhost';
+CREATE USER 'ranger'@'%' IDENTIFIED BY 'ranger';
+GRANT ALL PRIVILEGES ON *.* TO 'ranger'@'%';
+GRANT ALL PRIVILEGES ON *.* TO 'ranger'@'localhost' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'ranger'@'%' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'ranger'@'s1' WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
+Commit;
+
+# ls /usr/share/java/mysql-connector-java.jar
+If the file is not in the Java share directory, use the following command to install the MySQL connector .jar file.
+RHEL/CentOS/Oracle Linux
+# yum install mysql-connector-java*
+
+For example:
+# ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar
+=======================================================================================================================================================
