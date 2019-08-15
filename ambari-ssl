@@ -1,0 +1,113 @@
+ambari-ssl
+----------------
+[root@master ~]# cd /etc/
+[root@master etc]# mkdir ambari-ssl
+[root@master etc]# cd ambari-ssl/
+[root@master ambari-ssl]#
+[root@master ambari-ssl]# openssl genrsa -out master.key 2048
+Generating RSA private key, 2048 bit long modulus
+.................................+++
+...............................................................................................+++
+e is 65537 (0x10001)
+[root@master ambari-ssl]# ls
+master.key
+[root@master ambari-ssl]# openssl req -new -key master.key -out master.csr
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:IN
+State or Province Name (full name) []:MAHARASHTRA
+Locality Name (eg, city) [Default City]:PUNE
+Organization Name (eg, company) [Default Company Ltd]:TD
+Organizational Unit Name (eg, section) []:TBA
+Common Name (eg, your name or your server's hostname) []:master
+Email Address []:shehbaz.pathan@teradata.com
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:admin
+An optional company name []:td
+[root@master ambari-ssl]# ls
+master.csr  master.key
+
+[root@master ambari-ssl]# openssl x509 -req -days 365 -in master.csr -signkey master.key -out master.crt
+Signature ok
+subject=/C=IN/ST=MAHARASHTRA/L=PUNE/O=TD/OU=TBA/CN=master/emailAddress=shehbaz.pathan@teradata.com
+Getting Private key
+
+[root@master ambari-ssl]# ambari-server setup-security
+Using python  /usr/bin/python
+Security setup options...
+===========================================================================
+Choose one of the following options:
+  [1] Enable HTTPS for Ambari server.
+  [2] Encrypt passwords stored in ambari.properties file.
+  [3] Setup Ambari kerberos JAAS configuration.
+  [4] Setup truststore.
+  [5] Import certificate to truststore.
+===========================================================================
+Enter choice, (1-5): 1
+Do you want to configure HTTPS [y/n] (y)? y
+SSL port [8443] ? 8444
+Enter path to Certificate: /etc/ambari-ssl
+Certificate not found
+Enter path to Certificate: /etc/ambari-ssl/master.crt
+Enter path to Private Key: /etc/ambari-ssl/master.key
+Please enter password for Private Key:
+Importing and saving Certificate...done.
+Ambari server URL changed. To make use of the Tez View in Ambari please update the property tez.tez-ui.history-url.base in tez-site
+Adjusting ambari-server permissions and ownership...
+NOTE: Restart Ambari Server to apply changes ("ambari-server restart|stop+start")
+
+[root@master ambari-ssl]# ambari-server restart
+Using python  /usr/bin/python
+Restarting ambari-server
+Waiting for server stop...
+Ambari Server stopped
+Ambari Server running with administrator privileges.
+Organizing resource files at /var/lib/ambari-server/resources...
+Ambari database consistency check started...
+Server PID at: /var/run/ambari-server/ambari-server.pid
+Server out at: /var/log/ambari-server/ambari-server.out
+Server log at: /var/log/ambari-server/ambari-server.log
+Waiting for server start......................
+Server started listening on 8444
+=====================================================================================
+Hue configure
+http://gethue.com/configure-hue-with-https-ssl/
+[root@s1 conf]# pwd
+/etc/hue/conf
+[root@s1 conf]# openssl genrsa 4096 > s1.key
+Generating RSA private key, 4096 bit long modulus
+.................................................................................++
+...........................++
+e is 65537 (0x10001)
+[root@s1 conf]# openssl req -new -x509 -nodes -sha1 -key s1.key > s1.cert
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:IN
+State or Province Name (full name) []:MAHARASHTRA
+Locality Name (eg, city) [Default City]:PUNE
+Organization Name (eg, company) [Default Company Ltd]:TD
+Organizational Unit Name (eg, section) []:TBA
+Common Name (eg, your name or your server's hostname) []:S1
+Email Address []:shehbaz.pathan@td.com
+
+change in hui.ini(your certificate location)
+69   # Filename of SSL Certificate
+70   ssl_certificate=/etc/hue/conf/s1.cert ()
+72   # Filename of SSL RSA Private Key
+73   ssl_private_key=/etc/hue/conf/s1.key
+
+retstart hue
+/etc/init.d/hue restart
+==========================================================================================
