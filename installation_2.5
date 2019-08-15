@@ -1,0 +1,70 @@
+a=======================================================================================================================================================
+							 Postgresql 9.3 installation on centos 6.9			 
+=======================================================================================================================================================
+
+wget https://download.postgresql.org/pub/repos/yum/9.3/redhat/rhel-7-x86_64/pgdg-redhat93-9.3-3.noarch.rpm 
+rpm -ivh pgdg-redhat93-9.3-3.noarch.rpm 
+yum install postgresql93-server -y
+
+service postgresql-9.3 initdb
+service postgresql-9.3 start 	 	 
+service postgresql-9.3 status 
+=======================================================================================================================================================1. On the Hive metastore host, install the connector: 
+yum install postgresql-jdbc -y
+
+2. Confirm that the .jar file is in the Java share directory: 
+ls -l /usr/share/java/postgresql-jdbc.jar 
+=======================================================================================================================================================Verify you are able to login in postgres by following commnad
+su - postgres
+psql 
+\list 
+=======================================================================================================================================================vi /var/lib/pgsql/9.3/data/postgresql.conf 
+  59 listen_addresses = '*'          # what IP address(es) to listen on;
+  60                                         # comma-separated list of addresses;
+  61                                         # defaults to 'localhost'; use '*' for all
+  62                                         # (change requires restart)
+  63 port = 5432                             # (change requires restart)
+
+vi /var/lib/pgsql/9.3/data/postgresql.con
+  557 #sql_inheritance = on
+  558 standard_conforming_strings = off
+  559 #synchronize_seqscans = on
+======================================================================================================================================================= 
+cd /tmp 
+echo "CREATE DATABASE hive;" | sudo -u postgres psql -U postgres 
+echo "CREATE DATABASE ambari;" | sudo -u postgres psql -U postgres 
+
+echo "CREATE USER hive WITH PASSWORD 'hive';" | sudo -u postgres psql -U postgres
+echo "CREATE USER ambari WITH PASSWORD 'ambari';" | sudo -u postgres psql -U postgres
+ 
+echo "GRANT ALL PRIVILEGES ON DATABASE hive TO hive;" | sudo -u postgres psql -U postgres 
+echo "GRANT ALL PRIVILEGES ON DATABASE ambari TO ambari;" | sudo -u postgres psql -U postgres 
+
+echo "CREATE DATABASE hue;" | sudo -u postgres psql -U postgres
+echo "CREATE USER hue WITH PASSWORD 'hue';" | sudo -u postgres psql -U postgres 
+echo "GRANT ALL PRIVILEGES ON DATABASE hue TO hue;" | sudo -u postgres psql -U postgres 
+
+echo "CREATE DATABASE oozie;" | sudo -u postgres psql -U postgres 
+echo "CREATE USER oozie WITH PASSWORD 'oozie';" | sudo -u postgres psql -U postgres
+echo "GRANT ALL PRIVILEGES ON DATABASE oozie TO oozie;" | sudo -u postgres psql -U postgres 
+
+psql -h hostname -U ambari 
+=======================================================================================================================================================
+1. On the Hive metastore host, install the connector: 
+yum install postgresql-jdbc -y
+
+2. Confirm that the .jar file is in the Java share directory: 
+ls -l /usr/share/java/postgresql-jdbc.jar 
+=======================================================================================================================================================
+											Ambari installation 2.5.1.0 on centos 6.9 
+=======================================================================================================================================================
+wget http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.5.1.0/ambari.repo -O /etc/yum.repos.d/ambari.repo  
+yum install ambari-server -y 
+ 
+ambari-server setup --jdbc-db=postgres --jdbc-driver=/usr/share/java/postgresql-jdbc.jar 
+ 
+psql -U ambari -d ambari; 
+\connect ambari; 
+\i /var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql; 
+ 
+ambari-server start 
